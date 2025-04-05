@@ -3,11 +3,7 @@
 <head>
     <title>SSD温度监控</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .chart-container { position: relative; height: 400px; width: 100%; }
-    </style>
+    <link rel="stylesheet" href="src/styles/main.css">
 </head>
 <body>
     <div class="container">
@@ -17,124 +13,33 @@
             <input type="datetime-local" id="start" name="start">
             <label for="end">结束时间:</label>
             <input type="datetime-local" id="end" name="end">
-            <button onclick="fetchData()">查询</button>
+            <button id="queryBtn">查询</button>
         </div>
         <div class="quick-select">
-            <button onclick="selectTimeRange(30)">最近30秒</button>
-            <button onclick="selectTimeRange(300)">最近5分钟</button>
-            <button onclick="selectTimeRange(600)">最近10分钟</button>
-            <button onclick="selectTimeRange(1800)">最近30分钟</button>
-            <button onclick="selectTimeRange(3600)">最近1小时</button>
-            <button onclick="selectTimeRange(10800)">最近3小时</button>
-            <button onclick="selectTimeRange(21600)">最近6小时</button>
-            <button onclick="selectTimeRange(43200)">最近12小时</button>
+            <button data-seconds="30">最近30秒</button>
+            <button data-seconds="300">最近5分钟</button>
+            <button data-seconds="600">最近10分钟</button>
+            <button data-seconds="1800">最近30分钟</button>
+            <button data-seconds="3600">最近1小时</button>
+            <button data-seconds="10800">最近3小时</button>
+            <button data-seconds="21600">最近6小时</button>
+            <button data-seconds="43200">最近12小时</button>
         </div>
         <div class="chart-container">
             <canvas id="tempChart"></canvas>
         </div>
     </div>
 
-    <style>
-        .quick-select {
-            margin: 10px 0;
-        }
-        .quick-select button {
-            margin: 0 5px 5px 0;
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f8f9fa;
-            cursor: pointer;
-        }
-        .quick-select button:hover {
-            background-color: #e9ecef;
-        }
-    </style>
+    <script type="module">
+        import { fetchData, selectTimeRange } from './src/scripts/main.js';
 
-    <script>
-        let tempChart;
-
-        function fetchData() {
-            const startInput = document.getElementById('start');
-            const endInput = document.getElementById('end');
-            
-            if (!startInput.value || !endInput.value) {
-                alert('请选择开始和结束时间');
-                return;
-            }
-            
-            const start = Math.floor(new Date(startInput.value).getTime() / 1000);
-            const end = Math.floor(new Date(endInput.value).getTime() / 1000);
-            
-            
-            fetch(`/getTemperatures?start=${start}&end=${end}`)
-                .then(response => response.json())
-                .then(data => {
-                    updateChart(data);
-                })
-                .catch(error => {
-                    console.error('请求失败:', error);
-                    alert('获取数据失败');
-                });
-        }
-
-        function updateChart(data) {
-            const ctx = document.getElementById('tempChart').getContext('2d');
-            // 使用 created_at 替代 CreatedAt
-            const labels = data.map(item => new Date(item.created_at * 1000).toLocaleString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            }));
-            const temps = data.map(item => item.value);  // 使用 value 替代 Value
-
-            if (tempChart) {
-                tempChart.destroy();
-            }
-
-            tempChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'SSD温度 (°C)',
-                        data: temps,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false
-                        }
-                    }
-                }
+        document.getElementById('queryBtn').addEventListener('click', fetchData);
+        
+        document.querySelectorAll('.quick-select button').forEach(button => {
+            button.addEventListener('click', () => {
+                selectTimeRange(parseInt(button.dataset.seconds));
             });
-        }
-
-        function selectTimeRange(seconds) {
-            const end = new Date();
-            const start = new Date(end - seconds * 1000);
-            // 转换为本地时间格式
-            document.getElementById('start').value = formatLocalDateTime(start);
-            document.getElementById('end').value = formatLocalDateTime(end);
-            
-            fetchData();
-        }
-
-        // 添加格式化本地时间的辅助函数
-        function formatLocalDateTime(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
+        });
     </script>
 </body>
 </html>
