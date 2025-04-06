@@ -32,6 +32,6 @@ export function fetchData() {
       updateChart(data);
     })
     .catch((error) => {
-      alert("获取数据失败");
+      alert("获取数据失败: " + error);
     });
 }
