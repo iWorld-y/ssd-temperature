@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/iWorld-y/ssd-temperature/controller"
 	"github.com/iWorld-y/ssd-temperature/model"
@@ -24,12 +25,14 @@ func main() {
 
 	// Start HTTP server
 	r := gin.Default()
+
+	// 使用默认CORS配置
+	r.Use(cors.Default())
+
 	tempController := controller.NewTemperatureController(db)
 
 	// API routes
 	r.GET("/getTemperatures", tempController.GetTemperatures)
-	r.StaticFile("/", "./view/index.html")
-	r.Static("/src", "./view/src") // 添加这行来服务静态资源
 
 	// Start temperature monitoring in goroutine
 	go func() {
