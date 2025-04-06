@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/anatol/smart.go"
@@ -33,7 +34,7 @@ func (s *TemperatureService) ReadAndStoreTemperature(device string) (float64, er
 		return 0, fmt.Errorf("读取SMART数据失败: %v", err)
 	}
 
-	temp := float64(sm.Temperature) - 273.15
+	temp := math.Round((float64(sm.Temperature)-273.15)*100) / 100
 	err = s.db.Create(&model.Temperature{Temperature: temp}).Error
 	if err != nil {
 		return temp, fmt.Errorf("存储温度数据失败: %v", err)

@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Box, Container, Typography } from "@mui/material";
-import { Chart } from "chart.js/auto";
 import { TemperatureChart } from "./components/Chart/TemperatureChart";
 import { TimeControls } from "./components/Controls/TimeControls";
 import { TemperatureData } from "./components/Types";
@@ -8,9 +7,7 @@ import { TemperatureData } from "./components/Types";
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:13579';
 
 function App() {
-  const chartRef = useRef<HTMLCanvasElement>(null!);
-  // 删除这一行
-  // const tempChartRef = useRef<Chart | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null!);  // 将 HTMLCanvasElement 改为 HTMLDivElement
   const [chartData, setChartData] = useState<TemperatureData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [timeRange, setTimeRange] = useState({
@@ -41,8 +38,6 @@ function App() {
 
       const data: TemperatureData[] = await response.json();
       setChartData(data);
-      // 删除这一行
-      // updateChart(data);
     } catch (error) {
       console.error("获取数据失败:", error);
       alert(`获取数据失败: ${error instanceof Error ? error.message : '未知错误'}\n请检查后端服务是否运行`);
@@ -64,9 +59,6 @@ function App() {
   useEffect(() => {
     selectTimeRange(30);
   }, [selectTimeRange]);
-
-  // 删除整个 updateChart 函数
-  // const updateChart = useCallback((data: TemperatureData[]) => { ... });
 
   return (
     <Container maxWidth="md">
