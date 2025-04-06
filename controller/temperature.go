@@ -52,15 +52,31 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 		return
 	}
 
-	// 将 PO 转换为 DTO
-	tempDTOs := make([]TemperatureDTO, 0, len(temps))
-	for _, temp := range temps {
-		tempDTOs = append(tempDTOs, TemperatureDTO{
-			ID:        int32(temp.ID),
-			CreatedAt: temp.CreatedAt.Unix(), // 转换为秒级时间戳
-			Value:     temp.Temperature,
-		})
+	// 将 PO 转换为 DTO，并在数据量过大时进行等距抽样
+	const maxDataPoints = 50
+	step := 1
+	pointNum := len(temps)
+
+	if len(temps) > maxDataPoints {
+		// 计算采样间隔
+		step = len(temps) / maxDataPoints
+		pointNum = maxDataPoints
 	}
 
+	tempDTOs := make([]TemperatureDTO, 0, pointNum)
+	for sampledIndex := 0; sampledIndex < pointNum; sampledIndex++ {
+		currentIndex := sampledIndex * step
+		if currentIndex >= len(temps) {
+			break // 防止索引越界
+		}
+		
+		temperature := temps[currentIndex]
+		tempDTOs = append(tempDTOs, TemperatureDTO{
+			ID:        int32(temperature.ID),
+			Device:    temperature.Device,
+			CreatedAt: temperature.CreatedAt.Unix(),
+			Value:     temperature.Temperature,
+		})
+	}
 	ctx.JSON(http.StatusOK, tempDTOs)
 }
