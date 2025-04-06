@@ -64,12 +64,12 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 	}
 
 	tempDTOs := make([]TemperatureDTO, 0, pointNum)
-	for sampledIndex := 0; sampledIndex < pointNum; sampledIndex++ {
-		currentIndex := sampledIndex * step
+	for cnt := range pointNum {
+		currentIndex := cnt * step
 		if currentIndex >= len(temps) {
 			break // 防止索引越界
 		}
-		
+
 		temperature := temps[currentIndex]
 		tempDTOs = append(tempDTOs, TemperatureDTO{
 			ID:        int32(temperature.ID),
