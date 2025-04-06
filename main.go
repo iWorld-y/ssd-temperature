@@ -29,6 +29,7 @@ func main() {
 	// API routes
 	r.GET("/getTemperatures", tempController.GetTemperatures)
 	r.StaticFile("/", "./view/index.html")
+	r.Static("/src", "./view/src") // 添加这行来服务静态资源
 
 	// Start temperature monitoring in goroutine
 	go func() {
@@ -47,5 +48,5 @@ func main() {
 	}()
 
 	// Start HTTP server
-	r.Run(":8080")
+	r.Run(":13579")
 }

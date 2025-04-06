@@ -23,6 +23,7 @@ func NewTemperatureController(db *gorm.DB) *TemperatureController {
 // 在文件开头的 import 下面添加 DTO 结构体定义
 type TemperatureDTO struct {
 	ID        int32   `json:"id"`
+	Device    string  `json:"device"`     // 设备名称，如 disk5
 	CreatedAt int64   `json:"created_at"` // 秒级时间戳
 	Value     float64 `json:"value"`
 }
@@ -57,7 +58,7 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 		tempDTOs = append(tempDTOs, TemperatureDTO{
 			ID:        int32(temp.ID),
 			CreatedAt: temp.CreatedAt.Unix(), // 转换为秒级时间戳
-			Value:     temp.Value,
+			Value:     temp.Temperature,
 		})
 	}
 

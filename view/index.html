@@ -3,6 +3,7 @@
 <head>
     <title>SSD温度监控</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 修改CSS路径为相对于index.html的正确路径 -->
     <link rel="stylesheet" href="src/styles/main.css">
 </head>
 <body>
@@ -16,14 +17,14 @@
             <button id="queryBtn">查询</button>
         </div>
         <div class="quick-select">
-            <button data-seconds="30">最近30秒</button>
-            <button data-seconds="300">最近5分钟</button>
-            <button data-seconds="600">最近10分钟</button>
-            <button data-seconds="1800">最近30分钟</button>
-            <button data-seconds="3600">最近1小时</button>
-            <button data-seconds="10800">最近3小时</button>
-            <button data-seconds="21600">最近6小时</button>
-            <button data-seconds="43200">最近12小时</button>
+            <button data-seconds="30">最近 30 秒</button>
+            <button data-seconds="300">最近 5 分钟</button>
+            <button data-seconds="600">最近 10 分钟</button>
+            <button data-seconds="1800">最近 30 分钟</button>
+            <button data-seconds="3600">最近 1 小时</button>
+            <button data-seconds="10800">最近 3 小时</button>
+            <button data-seconds="21600">最近 6 小时</button>
+            <button data-seconds="43200">最近 12 小时</button>
         </div>
         <div class="chart-container">
             <canvas id="tempChart"></canvas>
@@ -31,12 +32,19 @@
     </div>
 
     <script type="module">
+        // 修改JS导入路径为相对于index.html的正确路径
         import { fetchData, selectTimeRange } from './src/scripts/main.js';
-
-        document.getElementById('queryBtn').addEventListener('click', fetchData);
+        
+        console.log('脚本加载完成'); // 添加加载日志
+        
+        document.getElementById('queryBtn').addEventListener('click', () => {
+            console.log('查询按钮被点击');
+            fetchData();
+        });
         
         document.querySelectorAll('.quick-select button').forEach(button => {
             button.addEventListener('click', () => {
+                console.log('快速选择按钮被点击:', button.textContent);
                 selectTimeRange(parseInt(button.dataset.seconds));
             });
         });

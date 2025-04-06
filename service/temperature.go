@@ -34,7 +34,7 @@ func (s *TemperatureService) ReadAndStoreTemperature(device string) (float64, er
 	}
 
 	temp := float64(sm.Temperature) - 273.15
-	err = s.db.Create(&model.Temperature{Value: temp}).Error
+	err = s.db.Create(&model.Temperature{Temperature: temp}).Error
 	if err != nil {
 		return temp, fmt.Errorf("存储温度数据失败: %v", err)
 	}
