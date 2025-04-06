@@ -7,11 +7,11 @@ import { TemperatureData } from "./components/Types";
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:13579';
 
 function App() {
-  const chartRef = useRef<HTMLDivElement>(null!);  // 将 HTMLCanvasElement 改为 HTMLDivElement
+  const chartRef = useRef<HTMLDivElement>(null!);
   const [chartData, setChartData] = useState<TemperatureData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [timeRange, setTimeRange] = useState({
-    start: new Date(Date.now() - 30 * 1000),
+    start: new Date(Date.now() - 24 * 60 * 60 * 1000), // 修改默认时间范围为24小时
     end: new Date()
   });
 
@@ -57,7 +57,7 @@ function App() {
   }, [timeRange, fetchData]);
 
   useEffect(() => {
-    selectTimeRange(30);
+    selectTimeRange(24 * 60 * 60); // 修改初始时间范围为24小时
   }, [selectTimeRange]);
 
   return (
@@ -73,6 +73,7 @@ function App() {
           isLoading={isLoading}
           timeRange={timeRange}
           setTimeRange={setTimeRange}
+          maxDays={31} // 添加最大可选天数限制
         />
 
         <Box height={400}>

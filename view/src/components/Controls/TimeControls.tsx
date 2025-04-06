@@ -1,5 +1,9 @@
-import { QuickSelectButton } from '../Types';
-import { Box, Button } from '@mui/material';
+import React from "react";
+import { Box, Button, ButtonGroup } from "@mui/material";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import zhCN from "date-fns/locale/zh-CN"; // 修改导入方式
 
 interface TimeControlsProps {
   onSelectTimeRange: (seconds: number) => void;
@@ -9,52 +13,74 @@ interface TimeControlsProps {
     start: Date;
     end: Date;
   };
-  setTimeRange: React.Dispatch<React.SetStateAction<{
-    start: Date;
-    end: Date;
-  }>>;
+  setTimeRange: (range: { start: Date; end: Date }) => void;
+  maxDays: number;
 }
 
-export function TimeControls({ onSelectTimeRange, onFetchData }: TimeControlsProps) {
-  const quickSelectButtons: QuickSelectButton[] = [
-    { label: '最近30秒', seconds: 30 },
-    { label: '最近5分钟', seconds: 300 },
-    { label: '最近10分钟', seconds: 600 },
-    { label: '最近30分钟', seconds: 1800 },
-    { label: '最近1小时', seconds: 3600 },
-    { label: '最近3小时', seconds: 10800 },
-    { label: '最近6小时', seconds: 21600 },
-    { label: '最近12小时', seconds: 43200 },
-  ];
+export function TimeControls({
+  onSelectTimeRange,
+  onFetchData,
+  isLoading,
+  timeRange,
+  setTimeRange,
+  maxDays,
+}: TimeControlsProps) {
+  const handleTimeRangeChange = (
+    newValue: Date | null,
+    type: "start" | "end"
+  ) => {
+    if (!newValue) return;
 
-  function formatLocalDateTime(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
+    const maxDate = new Date();
+    const minDate = new Date(maxDate.getTime() - maxDays * 24 * 60 * 60 * 1000);
 
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-  }
+    if (type === "start") {
+      if (newValue < minDate) newValue = minDate;
+      if (newValue > timeRange.end) newValue = timeRange.end;
+      setTimeRange({ ...timeRange, start: newValue });
+    } else {
+      if (newValue > maxDate) newValue = maxDate;
+      if (newValue < timeRange.start) newValue = timeRange.start;
+      setTimeRange({ ...timeRange, end: newValue });
+    }
+  };
 
   return (
-    <>
-      <Box display="flex" alignItems="center" mb={2}>
-        {/* 时间输入框和查询按钮 */}
-      </Box>
-      <Box mb={3}>
-        {quickSelectButtons.map((btn) => (
-          <Button
-            key={btn.seconds}
-            variant="outlined"
-            sx={{ mr: 1, mb: 1 }}
-            onClick={() => onSelectTimeRange(btn.seconds)}
-          >
-            {btn.label}
-          </Button>
-        ))}
-      </Box>
-    </>
+    <Box sx={{ mb: 2 }}>
+      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={zhCN}>
+        <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
+          <DateTimePicker
+            label="开始时间"
+            value={timeRange.start}
+            onChange={(newValue) => handleTimeRangeChange(newValue, "start")}
+            maxDateTime={timeRange.end}
+            minDateTime={new Date(Date.now() - maxDays * 24 * 60 * 60 * 1000)}
+          />
+          <DateTimePicker
+            label="结束时间"
+            value={timeRange.end}
+            onChange={(newValue) => handleTimeRangeChange(newValue, "end")}
+            maxDateTime={new Date()}
+            minDateTime={timeRange.start}
+          />
+        </Box>
+      </LocalizationProvider>
+
+      <ButtonGroup variant="contained" sx={{ mb: 2 }}>
+        <Button onClick={() => onSelectTimeRange(30)}>30秒</Button>
+        <Button onClick={() => onSelectTimeRange(5 * 60)}>5分钟</Button>
+        <Button onClick={() => onSelectTimeRange(15 * 60)}>15分钟</Button>
+        <Button onClick={() => onSelectTimeRange(60 * 60)}>1小时</Button>
+        <Button onClick={() => onSelectTimeRange(6 * 60 * 60)}>6小时</Button>
+        <Button onClick={() => onSelectTimeRange(24 * 60 * 60)}>24小时</Button>
+        <Button onClick={() => onSelectTimeRange(7 * 24 * 60 * 60)}>7天</Button>
+        <Button onClick={() => onSelectTimeRange(30 * 24 * 60 * 60)}>
+          30天
+        </Button>
+        <Button onClick={onFetchData} disabled={isLoading}>
+          {isLoading ? "加载中..." : "刷新"}
+        </Button>
+      </ButtonGroup>
+    </Box>
   );
 }
