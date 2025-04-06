@@ -63,9 +63,32 @@ function App() {
   return (
     <Container maxWidth="md">
       <Box my={4}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          SSD温度监控
-        </Typography>
+        <Box display="flex" alignItems="center" mb={3}>
+          <Box 
+            component="img" 
+            src="/ssd-temperature-logo.png" 
+            alt="SSD Temperature Logo"
+            sx={{ 
+              height: '2.125rem',
+              marginRight: 2,
+              borderRadius: '4px',  // 添加圆角
+              display: 'flex',
+              alignItems: 'center'  // 确保图片垂直居中
+            }}
+          />
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom 
+            sx={{ 
+              display: 'flex',
+              alignItems: 'center',  // 确保文字垂直居中
+              marginBottom: 0  // 覆盖 gutterBottom 的默认下边距
+            }}
+          >
+            SSD温度监控
+          </Typography>
+        </Box>
 
         <TimeControls
           onSelectTimeRange={selectTimeRange}
