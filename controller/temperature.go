@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -48,6 +49,7 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 
 	temps, err := c.service.GetTemperatures(startTime, endTime)
 	if err != nil {
+		log.Printf("Error querying temperatures: %v\n", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query temperatures"})
 		return
 	}
@@ -63,7 +65,7 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 		pointNum = maxDataPoints
 	}
 
-	tempDTOs := make([]TemperatureDTO, 0, pointNum)
+	tempDTOs := make([]*TemperatureDTO, 0, pointNum)
 	for cnt := range pointNum {
 		currentIndex := cnt * step
 		if currentIndex >= len(temps) {
@@ -71,7 +73,7 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 		}
 
 		temperature := temps[currentIndex]
-		tempDTOs = append(tempDTOs, TemperatureDTO{
+		tempDTOs = append(tempDTOs, &TemperatureDTO{
 			ID:        int32(temperature.ID),
 			Device:    temperature.Device,
 			CreatedAt: temperature.CreatedAt.Unix(),

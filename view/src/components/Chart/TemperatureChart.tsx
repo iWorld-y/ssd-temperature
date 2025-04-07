@@ -74,7 +74,7 @@ export const TemperatureChart: React.FC<TemperatureChartProps> = ({ chartRef, da
       chartInstance.current?.dispose();
       chartInstance.current = null;
     };
-  }, [data]);
+  }, [data, chartRef]);  // Added chartRef to dependency array
 
   return <div ref={chartRef} style={{ width: '100%', height: '100%' }} />;
 };

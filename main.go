@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -11,12 +13,22 @@ import (
 	"github.com/iWorld-y/ssd-temperature/service"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("temperatures.sqlite3"), &gorm.Config{})
+	log.SetFlags(log.LstdFlags | log.Llongfile)
+	db, err := gorm.Open(sqlite.Open("temperatures.sqlite3"), &gorm.Config{
+		Logger: logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				SlowThreshold: time.Second, // 慢 SQL 阈值
+				LogLevel:      logger.Info, // 日志级别
+				Colorful:      true,        // 彩色打印
+			}),
+	})
 	if err != nil {
-		fmt.Printf("Error opening database: %v\n", err)
+		log.Printf("Error opening database: %v\n", err)
 		return
 	}
 
