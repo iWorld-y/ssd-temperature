@@ -2,12 +2,14 @@ package controller
 
 import (
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/iWorld-y/ssd-temperature/service"
+	"github.com/iWorld-y/ssd-temperature/utils"
 	"gorm.io/gorm"
 )
 
@@ -54,31 +56,15 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 		return
 	}
 
-	// 将 PO 转换为 DTO，并在数据量过大时进行等距抽样
-	const maxDataPoints = 50
-	step := 1
-	pointNum := len(temps)
-
-	if len(temps) > maxDataPoints {
-		// 计算采样间隔
-		step = len(temps) / maxDataPoints
-		pointNum = maxDataPoints
-	}
-
-	tempDTOs := make([]*TemperatureDTO, 0, pointNum)
-	for cnt := range pointNum {
-		currentIndex := cnt * step
-		if currentIndex >= len(temps) {
-			break // 防止索引越界
+	temps = utils.Sample(temps, 50)
+	tempDTOs := make([]*TemperatureDTO, len(temps))
+	for i, temp := range temps {
+		tempDTOs[i] = &TemperatureDTO{
+			ID:        int32(temp.ID),
+			Device:    temp.Device,
+			CreatedAt: temp.CreatedAt.Unix(),
+			Value:     math.Round(temp.Temperature*100) / 100,
 		}
-
-		temperature := temps[currentIndex]
-		tempDTOs = append(tempDTOs, &TemperatureDTO{
-			ID:        int32(temperature.ID),
-			Device:    temperature.Device,
-			CreatedAt: temperature.CreatedAt.Unix(),
-			Value:     temperature.Temperature,
-		})
 	}
 	ctx.JSON(http.StatusOK, tempDTOs)
 }

@@ -72,6 +72,7 @@ export function TimeControls({
         <Button onClick={() => onSelectTimeRange(15 * 60)}>15分钟</Button>
         <Button onClick={() => onSelectTimeRange(60 * 60)}>1小时</Button>
         <Button onClick={() => onSelectTimeRange(6 * 60 * 60)}>6小时</Button>
+        <Button onClick={() => onSelectTimeRange(12 * 60 * 60)}>12小时</Button>
         <Button onClick={() => onSelectTimeRange(24 * 60 * 60)}>24小时</Button>
         <Button onClick={() => onSelectTimeRange(7 * 24 * 60 * 60)}>7天</Button>
         <Button onClick={() => onSelectTimeRange(30 * 24 * 60 * 60)}>
