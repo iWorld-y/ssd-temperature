@@ -25,6 +25,22 @@ export function TimeControls({
   setTimeRange,
   maxDays,
 }: TimeControlsProps) {
+  const [lastSelectedRange, setLastSelectedRange] = React.useState<number | null>(null);
+
+  const handleTimeRangeSelect = (seconds: number) => {
+    setLastSelectedRange(seconds);
+    onSelectTimeRange(seconds);
+  };
+
+  const handleFetchData = () => {
+    if (lastSelectedRange !== null) {
+      // 直接使用上次选择的时间范围
+      onSelectTimeRange(lastSelectedRange);
+    } else {
+      // 如果没有上次选择的时间范围，调用原始刷新方法
+      onFetchData();
+    }
+  };
   const handleTimeRangeChange = (
     newValue: Date | null,
     type: "start" | "end"
@@ -67,18 +83,18 @@ export function TimeControls({
       </LocalizationProvider>
 
       <ButtonGroup variant="contained" sx={{ mb: 2 }}>
-        <Button onClick={() => onSelectTimeRange(30)}>30秒</Button>
-        <Button onClick={() => onSelectTimeRange(5 * 60)}>5分钟</Button>
-        <Button onClick={() => onSelectTimeRange(15 * 60)}>15分钟</Button>
-        <Button onClick={() => onSelectTimeRange(60 * 60)}>1小时</Button>
-        <Button onClick={() => onSelectTimeRange(6 * 60 * 60)}>6小时</Button>
-        <Button onClick={() => onSelectTimeRange(12 * 60 * 60)}>12小时</Button>
-        <Button onClick={() => onSelectTimeRange(24 * 60 * 60)}>24小时</Button>
-        <Button onClick={() => onSelectTimeRange(7 * 24 * 60 * 60)}>7天</Button>
-        <Button onClick={() => onSelectTimeRange(30 * 24 * 60 * 60)}>
+        <Button onClick={() => handleTimeRangeSelect(30)}>30秒</Button>
+        <Button onClick={() => handleTimeRangeSelect(5 * 60)}>5分钟</Button>
+        <Button onClick={() => handleTimeRangeSelect(15 * 60)}>15分钟</Button>
+        <Button onClick={() => handleTimeRangeSelect(60 * 60)}>1小时</Button>
+        <Button onClick={() => handleTimeRangeSelect(6 * 60 * 60)}>6小时</Button>
+        <Button onClick={() => handleTimeRangeSelect(12 * 60 * 60)}>12小时</Button>
+        <Button onClick={() => handleTimeRangeSelect(24 * 60 * 60)}>24小时</Button>
+        <Button onClick={() => handleTimeRangeSelect(7 * 24 * 60 * 60)}>7天</Button>
+        <Button onClick={() => handleTimeRangeSelect(30 * 24 * 60 * 60)}>
           30天
         </Button>
-        <Button onClick={onFetchData} disabled={isLoading}>
+        <Button onClick={handleFetchData} disabled={isLoading}>
           {isLoading ? "加载中..." : "刷新"}
         </Button>
       </ButtonGroup>
