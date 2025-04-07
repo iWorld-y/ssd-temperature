@@ -54,12 +54,15 @@ func (s *TemperatureService) ReadAndStoreTemperature(device string) (float64, er
 	return temp, nil
 }
 
-func (s *TemperatureService) GetTemperatures(startTime, endTime time.Time) ([]*model.Temperature, error) {
+func (s *TemperatureService) GetTemperatures(startTime, endTime time.Time, device string) ([]*model.Temperature, error) {
 	var (
 		cnt int64
 		ids []int64
 	)
-	err := s.db.Model(&model.Temperature{}).Where("created_at BETWEEN? AND?", startTime, endTime).Count(&cnt).Error
+	err := s.db.Model(&model.Temperature{}).
+		Where("created_at BETWEEN? AND?", startTime, endTime).
+		Where("device = ?", device).
+		Count(&cnt).Error
 	if err != nil {
 		log.Printf("查询温度数据失败: %v", err)
 		return nil, err
@@ -71,6 +74,7 @@ func (s *TemperatureService) GetTemperatures(startTime, endTime time.Time) ([]*m
 		var firstID, lastID int64
 		err := s.db.Model(&model.Temperature{}).
 			Where("created_at BETWEEN? AND?", startTime, endTime).
+			Where("device = ?", device).
 			Order("id ASC").
 			Limit(1).
 			Pluck("id", &firstID).
@@ -81,6 +85,7 @@ func (s *TemperatureService) GetTemperatures(startTime, endTime time.Time) ([]*m
 		}
 		err = s.db.Model(&model.Temperature{}).
 			Where("created_at BETWEEN? AND?", startTime, endTime).
+			Where("device = ?", device).
 			Order("id DESC").
 			Limit(1).
 			Pluck("id", &lastID).
@@ -97,7 +102,8 @@ func (s *TemperatureService) GetTemperatures(startTime, endTime time.Time) ([]*m
 		}
 	}
 	var temps []*model.Temperature
-	query := s.db.Where("created_at BETWEEN ? AND ?", startTime, endTime)
+	query := s.db.Where("created_at BETWEEN ? AND ?", startTime, endTime).
+		Where("device = ?", device)
 	if len(ids) > 0 {
 		query = query.Where("id IN ?", ids)
 	}

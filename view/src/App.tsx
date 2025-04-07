@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Box, Container, Typography } from "@mui/material";
+import { Box, Container, Typography, MenuItem, Select, FormControl } from "@mui/material";
 import { TemperatureChart } from "./components/Chart/TemperatureChart";
 import { TimeControls } from "./components/Controls/TimeControls";
 import { TemperatureData } from "./components/Types";
@@ -10,19 +10,52 @@ function App() {
   const chartRef = useRef<HTMLDivElement>(null!);
   const [chartData, setChartData] = useState<TemperatureData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [devices, setDevices] = useState<string[]>([]);
+  const [selectedDevice, setSelectedDevice] = useState<string>('');
   const [timeRange, setTimeRange] = useState({
-    start: new Date(Date.now() - 24 * 60 * 60 * 1000), // 修改默认时间范围为24小时
+    start: new Date(Date.now() - 24 * 60 * 60 * 1000),
     end: new Date()
   });
 
+  // 新增获取设备列表函数
+  const fetchDevices = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/listPhysicalDisks`,
+        {
+          mode: "cors",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: string[] = await response.json();
+      setDevices(data);
+      if (data.length > 0) {
+        setSelectedDevice(data[0]); // 默认选择第一个设备
+      }
+    } catch (error) {
+      console.error("获取设备列表失败:", error);
+    }
+  }, []);
+
+  // 修改fetchData函数，添加设备参数
   const fetchData = useCallback(async () => {
+    if (!selectedDevice) return;
+    
     setIsLoading(true);
     try {
       const start = Math.floor(timeRange.start.getTime() / 1000);
       const end = Math.floor(timeRange.end.getTime() / 1000);
 
       const response = await fetch(
-        `${API_BASE_URL}/getTemperatures?start=${start}&end=${end}`,
+        `${API_BASE_URL}/getTemperatures?start=${start}&end=${end}&device=${selectedDevice}`,
         {
           mode: "cors",
           headers: {
@@ -44,7 +77,12 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [timeRange]);
+  }, [timeRange, selectedDevice]);
+
+  // 在useEffect中添加获取设备列表
+  useEffect(() => {
+    fetchDevices();
+  }, [fetchDevices]);
 
   const selectTimeRange = useCallback((seconds: number) => {
     const end = new Date();
@@ -88,6 +126,23 @@ function App() {
           >
             SSD温度监控
           </Typography>
+        </Box>
+
+        <Box mb={3}>
+          <FormControl fullWidth>
+            <Select
+              value={selectedDevice}
+              onChange={(e) => setSelectedDevice(e.target.value)}
+              displayEmpty
+              disabled={isLoading || devices.length === 0}
+            >
+              {devices.map((device) => (
+                <MenuItem key={device} value={device}>
+                  {device}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
 
         <TimeControls

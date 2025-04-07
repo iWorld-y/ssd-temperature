@@ -34,6 +34,10 @@ type TemperatureDTO struct {
 func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 	startTimeStr := ctx.Query("start")
 	endTimeStr := ctx.Query("end")
+	device := ctx.Query("device")
+	if device == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Device is required"})
+	}
 
 	startTimeUnix, err := strconv.ParseInt(startTimeStr, 10, 64)
 	if err != nil {
@@ -49,7 +53,7 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 	}
 	endTime := time.Unix(endTimeUnix, 0)
 
-	temps, err := c.service.GetTemperatures(startTime, endTime)
+	temps, err := c.service.GetTemperatures(startTime, endTime, device)
 	if err != nil {
 		log.Printf("Error querying temperatures: %v\n", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query temperatures"})
