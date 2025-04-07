@@ -11,6 +11,7 @@ import (
 	"github.com/iWorld-y/ssd-temperature/controller"
 	"github.com/iWorld-y/ssd-temperature/model"
 	"github.com/iWorld-y/ssd-temperature/service"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -31,6 +32,11 @@ func main() {
 		log.Printf("Error opening database: %v\n", err)
 		return
 	}
+	quiteDB, err := gorm.Open(sqlite.Open("temperatures.sqlite3"), &gorm.Config{})
+	if err != nil {
+		log.Printf("Error opening database: %v\n", err)
+		return
+	}
 
 	// Auto migrate the schema
 	db.AutoMigrate(&model.Temperature{})
@@ -41,27 +47,48 @@ func main() {
 	// 使用默认CORS配置
 	r.Use(cors.Default())
 
-	tempController := controller.NewTemperatureController(db)
+	tempController := controller.NewTemperatureController(db, quiteDB)
 
 	// API routes
 	r.GET("/getTemperatures", tempController.GetTemperatures)
+	// ListPhysicalDisks
+	r.GET("/listPhysicalDisks", tempController.ListPhysicalDisks)
 
-	// Start temperature monitoring in goroutine
-	go func() {
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
+	disks, err := tempController.InnerListPhysicalDisks()
+	if err != nil {
+		log.Fatalf("Error listing physical disks: %v\n", err)
+	}
 
-		tempService := service.NewTemperatureService(db)
+	var errg errgroup.Group
+	errg.SetLimit(10)
 
-		for range ticker.C {
-			_, err := tempService.ReadAndStoreTemperature("disk5")
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
-				continue
+	for _, disk := range disks {
+		// Start temperature monitoring in goroutine
+		errg.Go(func() error {
+			ticker := time.NewTicker(time.Second)
+			defer ticker.Stop()
+
+			tempService := service.NewTemperatureService(db, quiteDB)
+
+			for range ticker.C {
+				_, err := tempService.ReadAndStoreTemperature(disk)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					return err
+				}
 			}
+			return nil
+		})
+	}
+	// 启动温度监控
+	go func() {
+		if err := errg.Wait(); err != nil {
+			log.Fatalf("Error in temperature monitoring: %v\n", err)
 		}
 	}()
 
 	// Start HTTP server
-	r.Run(":13579")
+	if err := r.Run(":13579"); err != nil {
+		log.Fatalf("Error starting HTTP server: %v\n", err)
+	}
 }

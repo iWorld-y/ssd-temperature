@@ -17,9 +17,9 @@ type TemperatureController struct {
 	service *service.TemperatureService
 }
 
-func NewTemperatureController(db *gorm.DB) *TemperatureController {
+func NewTemperatureController(db *gorm.DB, quiteDB *gorm.DB) *TemperatureController {
 	return &TemperatureController{
-		service: service.NewTemperatureService(db),
+		service: service.NewTemperatureService(db, quiteDB),
 	}
 }
 
@@ -67,4 +67,18 @@ func (c *TemperatureController) GetTemperatures(ctx *gin.Context) {
 		}
 	}
 	ctx.JSON(http.StatusOK, tempDTOs)
+}
+
+// 列举所有物理硬盘
+func (c *TemperatureController) InnerListPhysicalDisks() ([]string, error) {
+	return c.service.ListPhysicalDisks()
+}
+func (c *TemperatureController) ListPhysicalDisks(ctx *gin.Context) {
+	list, err := c.service.ListPhysicalDisks()
+	if err != nil {
+		log.Printf("Error listing physical disks: %v\n", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list physical disks"})
+		return
+	}
+	ctx.JSON(http.StatusOK, list)
 }

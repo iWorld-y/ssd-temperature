@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os/exec"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/anatol/smart.go"
@@ -12,11 +15,18 @@ import (
 )
 
 type TemperatureService struct {
-	db *gorm.DB
+	db      *gorm.DB
+	quiteDB *gorm.DB
 }
 
-func NewTemperatureService(db *gorm.DB) *TemperatureService {
-	return &TemperatureService{db: db}
+func NewTemperatureService(
+	db *gorm.DB,
+	quiteDB *gorm.DB,
+) *TemperatureService {
+	return &TemperatureService{
+		db:      db,
+		quiteDB: quiteDB,
+	}
 }
 
 func (s *TemperatureService) DB() *gorm.DB {
@@ -36,7 +46,7 @@ func (s *TemperatureService) ReadAndStoreTemperature(device string) (float64, er
 	}
 
 	temp := math.Round((float64(sm.Temperature)-273.15)*100) / 100
-	err = s.db.Create(&model.Temperature{Temperature: temp}).Error
+	err = s.quiteDB.Create(&model.Temperature{Device: device, Temperature: temp}).Error
 	if err != nil {
 		return temp, fmt.Errorf("存储温度数据失败: %v", err)
 	}
@@ -96,4 +106,30 @@ func (s *TemperatureService) GetTemperatures(startTime, endTime time.Time) ([]*m
 		return nil, err
 	}
 	return temps, nil
+}
+
+// 列举所有物理硬盘
+func (s *TemperatureService) ListPhysicalDisks() ([]string, error) {
+	cmd := exec.Command("diskutil", "list")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("执行diskutil命令失败: %v", err)
+	}
+
+	var disks []string
+	re := regexp.MustCompile(`^/dev/(disk\d+)\s+.*\(.*physical.*\)`)
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if re.MatchString(line) {
+			matches := re.FindStringSubmatch(line)
+			if len(matches) > 1 {
+				disks = append(disks, matches[1])
+			}
+		}
+	}
+
+	if len(disks) == 0 {
+		return nil, fmt.Errorf("未找到物理磁盘")
+	}
+	return disks, nil
 }
