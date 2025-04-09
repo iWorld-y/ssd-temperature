@@ -49,9 +49,9 @@ func main() {
 
 	tempController := controller.NewTemperatureController(db, quiteDB)
 
-	// API routes
+	// 获取温度数据
 	r.GET("/getTemperatures", tempController.GetTemperatures)
-	// ListPhysicalDisks
+	// 获取物理硬盘列表
 	r.GET("/listPhysicalDisks", tempController.ListPhysicalDisks)
 
 	disks, err := tempController.InnerListPhysicalDisks()

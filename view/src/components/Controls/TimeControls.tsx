@@ -84,16 +84,14 @@ export function TimeControls({
 
       <ButtonGroup variant="contained" sx={{ mb: 2 }}>
         <Button onClick={() => handleTimeRangeSelect(30)}>30秒</Button>
+        <Button onClick={() => handleTimeRangeSelect(2 * 60)}>2分钟</Button>
         <Button onClick={() => handleTimeRangeSelect(5 * 60)}>5分钟</Button>
         <Button onClick={() => handleTimeRangeSelect(15 * 60)}>15分钟</Button>
         <Button onClick={() => handleTimeRangeSelect(60 * 60)}>1小时</Button>
         <Button onClick={() => handleTimeRangeSelect(6 * 60 * 60)}>6小时</Button>
         <Button onClick={() => handleTimeRangeSelect(12 * 60 * 60)}>12小时</Button>
-        <Button onClick={() => handleTimeRangeSelect(24 * 60 * 60)}>24小时</Button>
+        <Button onClick={() => handleTimeRangeSelect(24 * 60 * 60)}>1天</Button>
         <Button onClick={() => handleTimeRangeSelect(7 * 24 * 60 * 60)}>7天</Button>
-        <Button onClick={() => handleTimeRangeSelect(30 * 24 * 60 * 60)}>
-          30天
-        </Button>
         <Button onClick={handleFetchData} disabled={isLoading}>
           {isLoading ? "加载中..." : "刷新"}
         </Button>
